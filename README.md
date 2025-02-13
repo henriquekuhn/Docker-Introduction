@@ -1,40 +1,39 @@
+Complete Guide: Setting Up Development Environment with Docker, Ionic, and PostgreSQL
 
-# Guia Completo: Configuração do Ambiente de Desenvolvimento com Docker, Ionic e PostgreSQL
+# Complete Guide: Setting Up Development Environment with Docker, Ionic, and PostgreSQL
 
-## Índice
-1. [Introdução ao Uso do Docker para Desenvolvimento](#introducao-ao-uso-do-docker-para-desenvolvimento)
-2. [Configuração do Docker e Docker Compose](#configuracao-do-docker-e-docker-compose)
-3. [Criação do Projeto Ionic dentro do Container](#criacao-do-projeto-ionic-dionic)
-4. [Configuração do Backend (Flask + PostgreSQL)](#configuracao-do-backend-flask-postgresql)
-5. [Configuração do VS Code](#configuracao-do-vs-code)
-6. [Execução do Projeto e Testes](#execucao-do-projeto-e-testes)
-7. [Banco de Dados PostgreSQL no Docker](#banco-de-dados-postgresql-no-docker)
-8. [Conclusão e Melhores Práticas](#conclusao-e-melhores-praticas)
+## Index
+1. Introduction to Using Docker for Development
+2. Setting Up Docker and Docker Compose
+3. Creating the Ionic Project Inside the Container
+4. Backend Configuration (Flask + PostgreSQL)
+5. VS Code Configuration
+6. Project Execution and Testing
+7. PostgreSQL Database in Docker
+8. Conclusion and Best Practices
 
-## 1. Introdução ao Uso do Docker para Desenvolvimento
-**Por que usar Docker?**
-- **Padronização:** Todos os desenvolvedores usam o mesmo ambiente.
-- **Evita conflitos:** As versões das dependências são mantidas consistentes.
-- **Facilidade:** Não é necessário instalar tudo no sistema operacional, basta rodar o container.
+## 1. Introduction to Using Docker for Development
+### Why use Docker?
+- **Standardization**: All developers use the same environment.
+- **Avoids conflicts**: Dependency versions are kept consistent.
+- **Ease of use**: No need to install everything on the operating system, just run the container.
 
-Utilizando containers para cada serviço (frontend, backend, banco de dados), garantimos um ambiente isolado e eficiente.
+By using containers for each service (frontend, backend, database), we ensure an isolated and efficient environment.
 
-## 2. Configuração do Docker e Docker Compose
-### Instalação do Docker
-Baixe e instale o Docker no site oficial:
-[🔗 Docker Desktop](https://www.docker.com/products/docker-desktop)
+## 2. Setting Up Docker and Docker Compose
+### Installing Docker
+Download and install Docker from the official website:  
+🔗 [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
-Para verificar a instalação, execute:
+To check the installation, run:
 ```sh
 docker --version
 docker-compose --version
 ```
+If the commands return versions, the installation was successful.
 
-Se os comandos retornarem versões, a instalação foi bem-sucedida.
-
-### Criar docker-compose.yml
-O arquivo `docker-compose.yml` define nossos containers.
-
+### Creating docker-compose.yml
+The `docker-compose.yml` file defines our containers:
 ```yaml
 version: "3.8"
 
@@ -73,30 +72,30 @@ volumes:
   pgdata:
 ```
 
-## 3. Criação do Projeto Ionic dentro do Container
-Após subir os containers, acesse o terminal do container frontend e crie o projeto:
-
+## 3. Creating the Ionic Project Inside the Container
+After starting the containers, access the frontend container terminal and create the project:
 ```sh
 docker-compose up -d
 docker exec -it <container_id> bash
 ionic start frontend-app blank --type=angular --standalone
 ```
 
-### Standalone vs NgModule no Angular
-- **Standalone:** Estrutura mais moderna e modular.
-- **NgModule:** Estrutura tradicional do Angular, usada em projetos antigos.
+### Standalone vs NgModule in Angular
+- **Standalone**: More modern and modular structure.
+- **NgModule**: Traditional Angular structure used in older projects.
 
-Recomendamos o uso do **Standalone** para novos projetos.
+We recommend using Standalone for new projects.
 
-## 4. Configuração do Backend (Flask + PostgreSQL)
-### Criar o ambiente do backend
+## 4. Backend Configuration (Flask + PostgreSQL)
+### Creating the backend environment
+Inside the project folder:
 ```sh
 mkdir backend && cd backend
 touch app.py Dockerfile requirements.txt
 mkdir models
 ```
 
-### Criação do Dockerfile do backend
+### Creating the backend Dockerfile
 ```Dockerfile
 FROM python:3.9
 WORKDIR /app
@@ -106,8 +105,8 @@ COPY . .
 CMD ["python", "app.py"]
 ```
 
-### Criação do requirements.txt
-```plaintext
+### Creating requirements.txt
+```txt
 flask
 flask-sqlalchemy
 flask-restful
@@ -115,9 +114,8 @@ flask-cors
 psycopg2-binary
 ```
 
-### Configuração do Flask e PostgreSQL
-Crie o arquivo `app.py` com a API:
-
+### Configuring Flask and PostgreSQL
+Creating `app.py` with the API:
 ```python
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -135,42 +133,59 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-class Compra(db.Model):
+class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item = db.Column(db.String(100), nullable=False)
-    quantidade = db.Column(db.Integer, nullable=False)
-    preco = db.Column(db.Float, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
 
 with app.app_context():
     db.create_all()
+
+api.add_resource(Purchase, "/purchases", "/purchases/<int:purchase_id>")
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0")
 ```
 
-## 5. Configuração do VS Code
-Para editar arquivos dentro do container, use a extensão **Remote - Containers** no VS Code.
+## 5. VS Code Configuration
+To edit files inside the container, use the Remote - Containers extension in VS Code.
 
-## 6. Execução do Projeto e Testes
+## 6. Project Execution and Testing
+To run the services:
 ```sh
 docker-compose up --build
 ```
+Access in the browser:
+- Frontend: http://localhost:8100
+- Backend: http://localhost:5000/purchases
 
-- Frontend: [http://localhost:8100](http://localhost:8100)
-- Backend: [http://localhost:5000/compras](http://localhost:5000/compras)
-
-## 7. Banco de Dados PostgreSQL no Docker
+## 7. PostgreSQL Database in Docker
+### Accessing the database
 ```sh
 docker exec -it <db_container_id> psql -U htmicron -d mkt_database
 ```
+### Checking tables in PostgreSQL
+```sql
+SELECT * FROM purchases;
+```
 
-## 8. Conclusão e Melhores Práticas
-- ✅ Ambiente de desenvolvimento idêntico para todos os desenvolvedores.
-- ✅ Facilidade para subir e testar a aplicação rapidamente.
-- ✅ Isolamento entre os serviços, evitando conflitos.
+## 8. Conclusion and Best Practices
+### Benefits of this method
+- ✅ Identical development environment for all developers.
+- ✅ Easy to launch and test the application quickly.
+- ✅ Isolation between services, avoiding conflicts.
 
-### Expansões futuras
-- 🚀 Implementar autenticação com JWT.
-- 🚀 Criar um sistema de logs para monitoramento.
-- 🚀 Configurar CI/CD para deploy automático.
+### Common errors and how to avoid them
+- ❌ Error: Container exits immediately after starting  
+  ✔ Solution: Check the CMD command in the Dockerfile. Flask needs to be running actively.
+
+- ❌ Error: Frontend cannot access backend  
+  ✔ Solution: Check if the backend is correctly exposed (http://localhost:5000).
+
+### Future expansions
+🚀 Suggested improvements:
+- Implement authentication with JWT.
+- Create a logging system for monitoring.
+- Set up CI/CD for automatic deployment.
 
